@@ -1,0 +1,3 @@
+[submodule "external/fairygui"]
+	path = external/fairygui
+	url = https://github.com/opala-studios/FairyGUI-cocos2dx.git
