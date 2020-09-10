@@ -50,8 +50,6 @@ endif()
 list(APPEND GAME_SOURCE
      Classes/AppDelegate.cpp
      Classes/HelloWorldScene.cpp
-     Classes/HelloWorldScene.cpp
-     Classes/Network/Database.cpp
      )
 list(APPEND GAME_HEADER
      Classes/AppDelegate.h
