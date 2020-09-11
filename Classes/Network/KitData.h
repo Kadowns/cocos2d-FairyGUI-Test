@@ -5,8 +5,7 @@
 #ifndef MYCPPGAME_KITDATA_H
 #define MYCPPGAME_KITDATA_H
 
-#include <iostream>
-#include <json/document-wrapper.h>
+#include "./SimplePadsGlobalDefinitions.h"
 
 struct KitData {
     std::string name;

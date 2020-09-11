@@ -24,10 +24,9 @@
 
 #include "network/HttpRequest.h"
 #include "network/HttpClient.h"
+#include "Network/SimplePadsGLoader.h"
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
-
-#include "Network/KitData.h"
 
 USING_NS_CC;
 using namespace fairygui;
@@ -49,36 +48,15 @@ bool HelloWorld::init()
     m_groot = GRoot::create(this);
     m_groot->retain();
 
+    UIObjectFactory::setLoaderExtension([](){
+        return SimplePadsGLoader::create();
+    });
+
     UIPackage::addPackage("ui/Menu");
     m_view = UIPackage::createObject("Menu", "Main")->as<GComponent>();
     m_groot->addChild(m_view);
 
-    m_kitList = m_view->getChild("kitList")->as<GList>();
-    m_kitList->retain();
 
-    //callback de download de imagem
-    m_downloader.onDataTaskSuccess = [this](const DownloadTask& task,
-                                                   std::vector<unsigned char>& data){
-
-        Texture2D* texture = nullptr;
-
-        do {
-            Image img;
-            if (!img.initWithImageData(data.data(), data.size())) {
-                return;
-            }
-
-            texture = new Texture2D();
-            if (!texture->initWithImage(&img)) {
-                return;
-            }
-
-            auto placeholder = m_kitButtonMap[task.identifier];
-            auto sprite = static_cast<Sprite*>(placeholder->displayObject());
-            sprite->setTexture(texture);
-        } while (0);
-        CC_SAFE_RELEASE(texture);
-    };
 
     //download do json
     auto request = new(std::nothrow)HttpRequest();
@@ -92,22 +70,20 @@ bool HelloWorld::init()
         const char* bytes = response->getResponseData()->data();
         rapidjson::Document document;
         document.Parse(bytes);
-        auto kits = document.FindMember("kits");
-        if (kits->value.IsArray()){
-            int i = 0;
-            for (auto& kit : kits->value.GetArray()){
-                this->m_kitList->addChild(this->createKitSlot(KitData::fromJson(kit.GetObject())));
-                i++;
-                if (i > 10){
-                    break;
-                }
-            }
+
+        auto kits = document["kits"].GetArray();
+        m_kitsData.reserve(kits.Size());
+        for (auto &kit : kits) {
+            m_kitsData.push_back(KitData::fromJson(kit));
         }
-        m_kitList->release();
+
+        m_kitList = m_view->getChild("kitList")->as<GList>();
+        m_kitList->setVirtual();
+        m_kitList->itemRenderer = CC_CALLBACK_2(HelloWorld::renderListItem, this);
+        m_kitList->setNumItems(m_kitsData.size());
+
     });
-
     HttpClient::getInstance()->sendImmediate(request);
-
     request->release();
 
     return true;
@@ -116,11 +92,8 @@ bool HelloWorld::init()
 fairygui::GComponent *
 HelloWorld::createKitSlot(const std::string &imageFile, const std::string &musicName, const std::string &artistNames) {
     auto kit = UIPackage::createObject("Menu", "kitSlot")->as<GComponent>();
-    auto placeholder = kit->getChild("placeholder")->as<GImage>();
-    m_kitButtonMap.emplace(musicName, placeholder);//usado para colocar a imagem correta nos botões
-    m_downloader.createDownloadDataTask(imageFile, musicName);
-
-
+    auto loader = kit->getChild("loader")->as<SimplePadsGLoader>();
+    loader->setURL(imageFile);
 
     auto musicNameText = kit->getChild("musicName")->as<GTextField>();
     musicNameText->setText(musicName);
@@ -132,4 +105,17 @@ HelloWorld::createKitSlot(const std::string &imageFile, const std::string &music
 
 fairygui::GComponent *HelloWorld::createKitSlot(const KitData &kitData) {
     return createKitSlot(kitData.imageUrl, kitData.musicName, kitData.authorName);
+}
+
+void HelloWorld::renderListItem(int index, fairygui::GObject *obj) {
+    auto& kitData = m_kitsData[index];
+    auto kitSlot = obj->as<GComponent>();
+    auto loader = kitSlot->getChild("loader")->as<SimplePadsGLoader>();
+    loader->setURL(kitData.imageUrl);
+
+    auto musicNameText = kitSlot->getChild("musicName")->as<GTextField>();
+    musicNameText->setText(kitData.musicName);
+
+    auto artistNameText = kitSlot->getChild("artistName")->as<GTextField>();
+    artistNameText->setText(kitData.authorName);
 }

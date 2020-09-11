@@ -25,10 +25,10 @@
 #ifndef __HELLOWORLD_SCENE_H__
 #define __HELLOWORLD_SCENE_H__
 
-#include "cocos2d.h"
-#include "FairyGUI.h"
+#include "SimplePadsGlobalDefinitions.h"
+
 #include "Network/KitData.h"
-#include "network/CCDownloader.h"
+
 
 class HelloWorld : public cocos2d::Scene
 {
@@ -40,7 +40,7 @@ public:
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
 private:
-
+    void renderListItem(int index, fairygui::GObject* obj);
     fairygui::GComponent* createKitSlot(const std::string& imageFile, const std::string& musicName, const std::string& artistNames);
     fairygui::GComponent* createKitSlot(const KitData &kitData);
 
@@ -49,8 +49,7 @@ private:
     fairygui::GRoot* m_groot;
     fairygui::GComponent* m_view;
     fairygui::GList* m_kitList;
-    std::unordered_map<std::string, fairygui::GImage*> m_kitButtonMap;
-    cocos2d::network::Downloader m_downloader;
+    std::vector<KitData> m_kitsData;
 };
 
 #endif // __HELLOWORLD_SCENE_H__

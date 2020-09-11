@@ -36,7 +36,7 @@ include(CocosBuildSet)
 add_subdirectory(${COCOS2DX_ROOT_PATH}/cocos ${ENGINE_BINARY_PATH}/cocos/core)
 
 # record sources, headers, resources...
-set(GAME_SOURCE)
+set(GAME_SOURCE Classes/Network/SimplePadsGLoader.cpp)
 set(GAME_HEADER)
 
 set(GAME_RES_FOLDER
@@ -55,6 +55,9 @@ list(APPEND GAME_HEADER
      Classes/AppDelegate.h
      Classes/HelloWorldScene.h
      Classes/Network/KitData.h
+     Classes/Network/SimplePadsGLoader.h
+     Classes/SimplePadsGlobalDefinitions.h
+
      )
 
 if(ANDROID)
